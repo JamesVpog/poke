@@ -3,6 +3,9 @@ use std::error::Error;
 use serde::{Serialize, Deserialize};
 use serde_json::Value;
 
+use std::io::{BufReader, Cursor};
+use rodio::{Decoder, MixerDeviceSink, source::Source};
+
 // only use the cries and sprites url to render later
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -37,17 +40,43 @@ pub struct Cries {
     pub latest: String,
     pub legacy: String,
 }
-
 // main usually returns () and Box<dyn Error> is a trait object (short for any type of error)
 fn main() -> Result<(), Box< dyn Error>> { 
     // works!!!
-    let uri = "https://pokeapi.co/api/v2/pokemon/pikachu"; 
+    let uri = "https://pokeapi.co/api/v2/pokemon/squirtle"; 
     let body: String = get(uri)
         .call()?
         .body_mut()
         .read_to_string()?;
 
     let pokemon : Pokemon = serde_json::from_str(&body)?;
-    dbg!(pokemon);
+
+    play_audio(&pokemon.cries.latest);
+
+    dbg!(pokemon.cries.latest);
+    dbg!(pokemon.sprites.front_default);
+    Ok(())
+}
+
+fn play_audio(url: &str) -> Result<(), Box< dyn Error>>{
+    // Get an OS-Sink handle to the default physical sound device.
+    // Note that the playback stops when the sink_handle is dropped.
+    let sink_handle = rodio::DeviceSinkBuilder::open_default_sink()
+            .expect("open default audio stream");
+
+    // load the sound from thr url, can either download it or load in into bytes
+    let cursor =  Cursor::new(get(url)
+        .call()?
+        .body_mut()
+        .read_to_vec()?);
+
+
+    let audio_file = BufReader::new(cursor);
+// Note that the playback stops when the player is dropped
+    let player = rodio::play(&sink_handle.mixer(), audio_file).unwrap();
+
+    // The sound plays in a separate audio thread,
+    // so we need to keep the main thread alive while it's playing.
+    std::thread::sleep(std::time::Duration::from_secs(5));
     Ok(())
 }

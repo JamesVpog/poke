@@ -1,6 +1,6 @@
-1. [ ] fetch data from api at url 
+1. [x] fetch data from api at url 
 
-2. [ ] parse json to get the sprite image url and battle cry url 
+2. [x] parse json to get the sprite image url and battle cry url 
 
 3. [ ] convert png to ascii to print in terminal
 
