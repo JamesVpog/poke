@@ -67,14 +67,6 @@ fn show_image(url: &str, name: &str) -> Result<(), Box<dyn Error>> {
         fs::write(&path, &sprite)?;
     }
 
-        let mut path = String::from("sprites/");
-        fs::create_dir_all(&path)?; // TODO: home xdg directory
-        
-        path.push_str(name);
-        path.push_str(".png");
-
-        fs::write(&path, &sprite)?;
-    } 
     let conf = Config {
         width: Some(100),
         ..Default::default()
