@@ -1,9 +1,12 @@
-use ureq::get;
 use std::error::Error;
-use serde::{Serialize, Deserialize};
-use serde_json::Value;
-
+use std::fs;
 use std::io::{BufReader, Cursor};
+                                                            
+use serde::{Serialize, Deserialize};
+
+use ureq::get;
+
+use viuer::{print_from_file, Config};
 
 // only use the cries and sprites url to render later
 #[derive(Serialize, Deserialize, Debug)]
@@ -17,20 +20,12 @@ struct Pokemon {
 pub struct Sprites {
     #[serde(rename = "back_default")]
     pub back_default: String,
-    #[serde(rename = "back_female")]
-    pub back_female: Value,
     #[serde(rename = "back_shiny")]
     pub back_shiny: String,
-    #[serde(rename = "back_shiny_female")]
-    pub back_shiny_female: Value,
     #[serde(rename = "front_default")]
     pub front_default: String,
-    #[serde(rename = "front_female")]
-    pub front_female: Value,
     #[serde(rename = "front_shiny")]
     pub front_shiny: String,
-    #[serde(rename = "front_shiny_female")]
-    pub front_shiny_female: Value,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -42,20 +37,57 @@ pub struct Cries {
 // main usually returns () and Box<dyn Error> is a trait object (short for any type of error)
 fn main() -> Result<(), Box< dyn Error>> { 
     // works!!!
-    let uri = "https://pokeapi.co/api/v2/pokemon/pikachu"; 
-    let body: String = get(uri)
+    // TODO: get user input instead
+    let mon = "eevee";
+    let mut url =  String::from("https://pokeapi.co/api/v2/pokemon/");
+
+    url.push_str(mon);
+
+    let body: String = get(&url)
         .call()?
         .body_mut()
         .read_to_string()?;
 
-    // WARNING: SOUND!!!
     let pokemon : Pokemon = serde_json::from_str(&body)?;
 
+    let _ = show_image(&pokemon.sprites.front_default, mon);
     let _ = play_audio(&pokemon.cries.latest);
 
     Ok(())
 }
 
+// found out that terminals use different rendering engines, so transition to use inline images 
+// TODO: cache results so dont need to use network oftern 
+fn show_image(url: &str, name: &str) -> Result<(), Box<dyn Error>> { 
+    //TODO: check if the path exists, if does go straight to rendering
+
+
+    //download from url 
+    let sprite = get(url)
+        .call()?
+        .body_mut()
+        .read_to_vec();
+
+    let mut path = String::from("sprites/");
+    fs::create_dir_all(path); // TODO: home xdg directory
+    
+    path.push_str(&name);
+    path.push_str(".png");
+
+    fs::write(path, &sprite)?;
+
+    // save to file with name
+    let conf = Config {
+        width: Some(100),
+        transparent: true,
+        ..Default::default()
+    };
+
+    print_from_file(path, &conf).expect("Image printing failed");
+    Ok(())
+}
+
+// TODO: cache results so dont need network
 fn play_audio(url: &str) -> Result<(), Box< dyn Error>>{
     // Get an OS-Sink handle to the default physical sound device.
     // Note that the playback stops when the sink_handle is dropped.
@@ -70,7 +102,7 @@ fn play_audio(url: &str) -> Result<(), Box< dyn Error>>{
 
 
     let audio_file = BufReader::new(cursor);
-// Note that the playback stops when the player is dropped
+    // Note that the playback stops when the player is dropped
     let _player = rodio::play(sink_handle.mixer(), audio_file).unwrap();
 
     // The sound plays in a separate audio thread,
