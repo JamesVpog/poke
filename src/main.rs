@@ -38,7 +38,7 @@ pub struct Cries {
 fn main() -> Result<(), Box< dyn Error>> { 
     // works!!!
     // TODO: get user input instead
-    let mon = "eevee";
+    let mon = "raichu";
     let mut url =  String::from("https://pokeapi.co/api/v2/pokemon/");
 
     url.push_str(mon);
@@ -59,47 +59,47 @@ fn main() -> Result<(), Box< dyn Error>> {
 // found out that terminals use different rendering engines, so transition to use inline images 
 // TODO: cache results so dont need to use network oftern 
 fn show_image(url: &str, name: &str) -> Result<(), Box<dyn Error>> { 
-    //TODO: check if the path exists, if does go straight to rendering
+    // if the file exists, go straight to rendering it
+    let path = format!("sprites/{}.png", name);
+    if !fs::exists(&path)? {
+        fs::create_dir_all("sprites/")?;
+        let sprite = get(url).call()?.body_mut().read_to_vec()?;
+        fs::write(&path, &sprite)?;
+    }
 
+        let mut path = String::from("sprites/");
+        fs::create_dir_all(&path)?; // TODO: home xdg directory
+        
+        path.push_str(name);
+        path.push_str(".png");
 
-    //download from url 
-    let sprite = get(url)
-        .call()?
-        .body_mut()
-        .read_to_vec();
-
-    let mut path = String::from("sprites/");
-    fs::create_dir_all(path); // TODO: home xdg directory
-    
-    path.push_str(&name);
-    path.push_str(".png");
-
-    fs::write(path, &sprite)?;
-
-    // save to file with name
+        fs::write(&path, &sprite)?;
+    } 
     let conf = Config {
         width: Some(100),
-        transparent: true,
         ..Default::default()
     };
 
-    print_from_file(path, &conf).expect("Image printing failed");
+    print_from_file(&path, &conf).expect("Image printing failed");
     Ok(())
 }
 
 // TODO: cache results so dont need network
 fn play_audio(url: &str) -> Result<(), Box< dyn Error>>{
-    // Get an OS-Sink handle to the default physical sound device.
-    // Note that the playback stops when the sink_handle is dropped.
-    let sink_handle = rodio::DeviceSinkBuilder::open_default_sink()
-            .expect("open default audio stream");
 
+    // TODO: download and cache it, 
+    // TODO: if the file exists, go straight to playing it 
     // load the sound from thr url, can either download it or load in into bytes
     let cursor =  Cursor::new(get(url)
         .call()?
         .body_mut()
         .read_to_vec()?);
 
+
+    // Get an OS-Sink handle to the default physical sound device.
+    // Note that the playback stops when the sink_handle is dropped.
+    let sink_handle = rodio::DeviceSinkBuilder::open_default_sink()
+            .expect("open default audio stream");
 
     let audio_file = BufReader::new(cursor);
     // Note that the playback stops when the player is dropped
