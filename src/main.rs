@@ -72,7 +72,6 @@ fn main() -> Result<(), Box< dyn Error>> {
     Ok(())
 }
 
-// TODO: why does the print_from_file not push to terminal but just print over everything?
 fn show_image(url: &str, name: &str) -> Result<(), Box<dyn Error>> { 
     // if the file exists, go straight to rendering it
     let path = format!("sprites/{}.png", name);
@@ -84,6 +83,10 @@ fn show_image(url: &str, name: &str) -> Result<(), Box<dyn Error>> {
     }
 
     let conf = Config {
+        // sensible sizes of pokemon, maybe override with user w and h?
+        width: Some(50),
+        height: Some(50),
+        absolute_offset: false, // draw not in absolute corner of terminal
         ..Default::default()
     };
 
