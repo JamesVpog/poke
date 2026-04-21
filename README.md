@@ -1,4 +1,4 @@
-# ter-mon
+# Poke
 
 a fun weekend project using the pokeapi
 

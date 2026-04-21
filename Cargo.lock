@@ -1337,6 +1337,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "poke"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "image",
+ "rodio",
+ "serde",
+ "serde_json",
+ "ureq",
+ "viuer",
+]
+
+[[package]]
 name = "ppv-lite86"
 version = "0.2.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1965,19 +1978,6 @@ dependencies = [
  "once_cell",
  "rustix 1.1.4",
  "windows-sys 0.61.2",
-]
-
-[[package]]
-name = "ter-mon"
-version = "0.1.0"
-dependencies = [
- "clap",
- "image",
- "rodio",
- "serde",
- "serde_json",
- "ureq",
- "viuer",
 ]
 
 [[package]]

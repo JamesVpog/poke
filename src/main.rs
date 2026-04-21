@@ -72,8 +72,7 @@ fn main() -> Result<(), Box< dyn Error>> {
     Ok(())
 }
 
-// found out that terminals use different rendering engines, so transition to use inline images 
-// TODO: cache results so dont need to use network oftern 
+// TODO: why does the print_from_file not push to terminal but just print over everything?
 fn show_image(url: &str, name: &str) -> Result<(), Box<dyn Error>> { 
     // if the file exists, go straight to rendering it
     let path = format!("sprites/{}.png", name);
@@ -116,7 +115,7 @@ fn play_audio(url: &str) -> Result<(), Box< dyn Error>>{
     // The sound plays in a separate audio thread,
     // so we need to keep the main thread alive while it's playing.
     
-    // length of sound should be based on length of file
+    // TODO: length of sound should be based on length from file...
     std::thread::sleep(std::time::Duration::from_secs(2));
     Ok(())
 }
