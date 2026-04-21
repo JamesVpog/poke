@@ -8,6 +8,8 @@ use ureq::get;
 
 use viuer::{print_from_file, Config};
 
+use clap::Parser;
+
 // only use the cries and sprites url to render later
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -34,14 +36,26 @@ pub struct Cries {
     pub latest: String,
     pub legacy: String,
 }
+
+// define a struct of args for user to pass in... 
+// bare minimum is sound-toggle and name of mon
+#[derive(Parser)]
+struct Cli {
+    /// Name of mon to poke
+    mon: String,
+
+    /// Bool toggle to enable sound (sound disabled by default) 
+    #[arg(short, long, default_value_t = false)]
+    sound: bool,
+}
 // main usually returns () and Box<dyn Error> is a trait object (short for any type of error)
 fn main() -> Result<(), Box< dyn Error>> { 
-    // works!!!
-    // TODO: get user input instead
-    let mon = "onix";
+    
+    let args = Cli::parse();
+
     let mut url =  String::from("https://pokeapi.co/api/v2/pokemon/");
 
-    url.push_str(mon);
+    url.push_str(&args.mon);
 
     let body: String = get(&url)
         .call()?
@@ -50,8 +64,10 @@ fn main() -> Result<(), Box< dyn Error>> {
 
     let pokemon : Pokemon = serde_json::from_str(&body)?;
 
-    let _ = show_image(&pokemon.sprites.front_default, mon);
-    let _ = play_audio(&pokemon.cries.latest);
+    let _ = show_image(&pokemon.sprites.front_default, &args.mon);
+    if args.sound {
+        let _ = play_audio(&pokemon.cries.latest);
+    }
 
     Ok(())
 }
