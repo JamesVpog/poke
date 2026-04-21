@@ -38,7 +38,7 @@ pub struct Cries {
 fn main() -> Result<(), Box< dyn Error>> { 
     // works!!!
     // TODO: get user input instead
-    let mon = "raichu";
+    let mon = "onix";
     let mut url =  String::from("https://pokeapi.co/api/v2/pokemon/");
 
     url.push_str(mon);
@@ -61,6 +61,7 @@ fn main() -> Result<(), Box< dyn Error>> {
 fn show_image(url: &str, name: &str) -> Result<(), Box<dyn Error>> { 
     // if the file exists, go straight to rendering it
     let path = format!("sprites/{}.png", name);
+
     if !fs::exists(&path)? {
         fs::create_dir_all("sprites/")?;
         let sprite = get(url).call()?.body_mut().read_to_vec()?;
@@ -68,7 +69,6 @@ fn show_image(url: &str, name: &str) -> Result<(), Box<dyn Error>> {
     }
 
     let conf = Config {
-        width: Some(100),
         ..Default::default()
     };
 
@@ -90,15 +90,17 @@ fn play_audio(url: &str) -> Result<(), Box< dyn Error>>{
 
     // Get an OS-Sink handle to the default physical sound device.
     // Note that the playback stops when the sink_handle is dropped.
-    let sink_handle = rodio::DeviceSinkBuilder::open_default_sink()
-            .expect("open default audio stream");
+    let mut sink_handle = rodio::DeviceSinkBuilder::open_default_sink()?;
 
+    sink_handle.log_on_drop(false);
     let audio_file = BufReader::new(cursor);
     // Note that the playback stops when the player is dropped
     let _player = rodio::play(sink_handle.mixer(), audio_file).unwrap();
 
     // The sound plays in a separate audio thread,
     // so we need to keep the main thread alive while it's playing.
-    std::thread::sleep(std::time::Duration::from_secs(5));
+    
+    // length of sound should be based on length of file
+    std::thread::sleep(std::time::Duration::from_secs(2));
     Ok(())
 }
